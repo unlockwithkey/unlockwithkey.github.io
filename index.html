@@ -425,7 +425,7 @@ body.inner #ticker{display:none}
 <div class="step-p" id="gsp2"><form class="f" id="gsf2">
 <h2 style="font-size:1.6rem;color:var(--plum-t)">Your information</h2>
 <div class="row"><div><label>First name</label><input name="fn" required></div><div><label>Last name</label><input name="ln" required></div></div>
-<label>Email</label><input name="em" type="email" required placeholder=""><label>Phone</label><input name="ph" type="tel" required placeholder=""><label>Date of birth</label><input name="db" type="date" required><label>Mailing address</label><input name="ad" type="text" required placeholder="Street address">
+<label>Email</label><input name="em" type="email" required placeholder=""><label>Phone</label><input name="ph" type="tel" required placeholder=""><label>Date of birth</label><input name="db" type="date" required><label>Current home address</label><input name="ad" type="text" required placeholder="Street address">
 <div class="row"><div><label>City</label><input name="ci" required></div><div><label>State</label><input name="st" value="TX" required></div></div><label>ZIP code</label><input name="zp" type="text" required placeholder="">
 <p class="small" style="margin-top:10px">We do not ask for your Social Security number or date of birth here. Any additional sensitive details are collected securely later, during onboarding.</p>
 <div id="partnerF" hidden><h2 style="font-size:1.5rem;margin-top:34px;color:var(--plum-t)">Your partner</h2><div class="row"><div><label>First name</label><input name="p1"></div><div><label>Last name</label><input name="p2"></div></div><label>Partner email</label><input name="pe" type="email"><label>Partner phone</label><input name="pp" type="tel"><label>Partner mailing address (if different)</label><input name="pa"></div>
@@ -537,7 +537,7 @@ if(n!==4){goStep(n+1);return}
 const btn=f.querySelector('button[type=submit]'),t=btn.textContent;btn.disabled=true;btn.textContent='Submitting...';
 const q=pr();
 const fields=Object.assign({'Plan':(S.plan==='basic'?'Basic':'Express')+' Repair','Signing up as':S.who,'Payment option':S.pay==='plan'?'Payment plan: '+money(q.start)+' to start, then '+money(q.mo)+'/month':'One-time fee: '+money(q.once),'Amount due at sign-up':(S.pay==='plan'?money(q.start):money(q.once)),'Authorized and signed':new Date().toString()},collect([$('gsf2'),$('gsf3'),$('gsf4')]));
-if(FORMS.endpoint){const g=n=>{const el=document.querySelector('#gsf2 [name='+n+']');return el?el.value:''};const zp=Object.assign({form_type:'credit_repair_signup',first_name:g('fn'),last_name:g('ln'),email:g('em'),phone:g('ph'),address:g('ad'),city:g('ci'),state:g('st'),zip:g('zp'),date_of_birth:g('db')},fields);zapSend(ZAP.credit,zp)}
+if(FORMS.endpoint){const g=n=>{const el=document.querySelector('#gsf2 [name='+n+']');return el?el.value:''};const zp=Object.assign({form_type:'credit_repair_signup',first_name:g('fn'),last_name:g('ln'),email:g('em'),phone:g('ph'),address:g('ad'),city:g('ci'),state:g('st'),zip:g('zp'),date_of_birth:(x=>x?x.slice(5,7)+'/'+x.slice(8,10)+'/'+x.slice(0,4):'')(g('db'))},fields);zapSend(ZAP.credit,zp)}
 const r=await sendForm('New client sign-up',fields,'');btn.disabled=false;btn.textContent=t;
 if(r===false){alert('Sorry, something went wrong and your sign-up was not sent. Please email moorewealthfirm@gmail.com.'+(window.__ferr?' ['+window.__ferr+']':''));return}
 $('cfName').textContent=document.querySelector('#gsf2 [name=fn]').value;
