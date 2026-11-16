@@ -8,7 +8,7 @@
 .price.lk{font-size:1.35rem;font-style:italic;color:var(--muted)}
 .gate-cta{max-width:640px;margin:44px auto 0;text-align:center}
 .gate-cta .btn{margin-top:18px}
-.was{opacity:.45;font-size:.6em;margin-right:6px;font-style:normal}.salebar{background:#4a2357;color:#fff;text-align:center;padding:11px 16px;font-size:.95rem;letter-spacing:.01em}</style></head><body>
+.was{opacity:.45;font-size:.6em;margin-right:6px;font-style:normal}.salebar{position:fixed;left:0;right:0;bottom:0;z-index:9999;box-shadow:0 -4px 14px rgba(0,0,0,.25);background:#4a2357;color:#fff;text-align:center;padding:11px 16px;font-size:.95rem;letter-spacing:.01em}</style></head><body>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -501,7 +501,7 @@ const crV=document.getElementById('creditView'),tabs=[...document.querySelectorA
 let cur=0;
 function setTab(i){cur=i;tabs.forEach((t,j)=>t.setAttribute('aria-selected',j===i));panels.forEach((q,j)=>q.classList.toggle('on',j===i))}
 tabs.forEach((t,i)=>t.onclick=()=>{setTab(i);const w=i===2?'#90-day-program':'#credit-restoration';if(location.hash!==w)location.hash=w});
-document.querySelectorAll('[data-pk]').forEach(e=>{const p=PACKAGES[e.dataset.pk];e.innerHTML=(p.reg!==p.price?'<s class="was">$'+p.reg+'</s> ':'')+'$'+p.price});document.querySelectorAll('[data-sp]').forEach(e=>{const r=+e.dataset.sp;e.innerHTML=(SALE_OFF?'<s class="was">$'+r.toLocaleString()+'</s> ':'')+'$'+(r-SALE_OFF).toLocaleString()});if(SALE){const b=document.createElement('div');b.className='salebar';b.innerHTML=SALE==='flash'?'<b>Flash Sale:</b> $200 off every plan when you pay in full. Limited time only.':'<b>Special Promo:</b> $100 off every plan when you pay in full.';document.body.prepend(b)}
+document.querySelectorAll('[data-pk]').forEach(e=>{const p=PACKAGES[e.dataset.pk];e.innerHTML=(p.reg!==p.price?'<s class="was">$'+p.reg+'</s> ':'')+'$'+p.price});document.querySelectorAll('[data-sp]').forEach(e=>{const r=+e.dataset.sp;e.innerHTML=(SALE_OFF?'<s class="was">$'+r.toLocaleString()+'</s> ':'')+'$'+(r-SALE_OFF).toLocaleString()});if(SALE){const b=document.createElement('div');b.className='salebar';b.innerHTML=SALE==='flash'?'<b>Flash Sale:</b> $200 off every plan when you pay in full. Limited time only.':'<b>Special Promo:</b> $100 off every plan when you pay in full.';document.body.prepend(b);document.body.style.paddingBottom='46px'}
 const hoV=document.getElementById('homeView'),faqV=document.getElementById('faqView'),ptV=document.getElementById('partnersView'),ctV=document.getElementById('contactView');
 
 const stV=document.getElementById('startView');
