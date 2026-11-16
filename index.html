@@ -8,7 +8,7 @@
 .price.lk{font-size:1.35rem;font-style:italic;color:var(--muted)}
 .gate-cta{max-width:640px;margin:44px auto 0;text-align:center}
 .gate-cta .btn{margin-top:18px}
-.was{opacity:.45;font-size:.6em;margin-right:6px;font-style:normal}.salebar{position:fixed;left:0;right:0;bottom:0;z-index:9999;box-shadow:0 -4px 14px rgba(0,0,0,.25);background:#4a2357;color:#fff;text-align:center;padding:11px 16px;font-size:.95rem;letter-spacing:.01em}</style></head><body>
+.was{opacity:.45;font-size:.6em;margin-right:6px;font-style:normal}.salebar .cd{margin-left:12px;font-weight:600;font-variant-numeric:tabular-nums;color:#f3d9a4;white-space:nowrap}.salebar .sp{color:#f3d9a4}.salebar{position:fixed;left:0;right:0;bottom:0;z-index:9999;box-shadow:0 -4px 14px rgba(0,0,0,.25);background:#4a2357;color:#fff;text-align:center;padding:11px 16px;font-size:.95rem;letter-spacing:.01em}</style></head><body>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -479,7 +479,7 @@ body.inner #ticker{display:none}
 </div></footer>
 
 <script>
-const SALE=(()=>{try{const s=new URLSearchParams(location.search).get('sale');return s==='promo'||s==='flash'?s:''}catch(e){return ''}})();const SALE_OFF={promo:100,flash:200}[SALE]||0;
+const SALE_INFO=(()=>{try{const c=(new URLSearchParams(location.search).get('sale')||'').toLowerCase();if(c.length<6)return null;const p=c.slice(0,-3),k=c.slice(-3);const h=s=>{let x=7;for(const ch of s+'|unlockwithkey')x=(x*31+ch.charCodeAt(0))%46656;return x.toString(36).padStart(3,'0')};if(h(p)!==k)return null;const t=p[0]==='f'?'flash':p[0]==='p'?'promo':'';const spots=parseInt(p[1],36)||0;const end=parseInt(p.slice(2),36)*60000;if(!t||!end)return null;return {t,spots,end,live:Date.now()<end}}catch(e){return null}})();const SALE=SALE_INFO&&SALE_INFO.live?SALE_INFO.t:'';const SALE_OFF={promo:100,flash:200}[SALE]||0;
 const PACKAGES=[
  {name:"Basic Credit Repair",reg:397,price:397-SALE_OFF,perks:["3-month program","Credit report audit","Dispute assistance","Monthly progress updates","Client portal access","Payment plan available"]},
  {name:"Express Credit Repair",reg:597,price:597-SALE_OFF,feat:true,perks:["Everything in Basic","Priority dispute processing","Enhanced support","Faster-paced dispute timeline","Pay in full (no payment plans)"]}
@@ -501,7 +501,7 @@ const crV=document.getElementById('creditView'),tabs=[...document.querySelectorA
 let cur=0;
 function setTab(i){cur=i;tabs.forEach((t,j)=>t.setAttribute('aria-selected',j===i));panels.forEach((q,j)=>q.classList.toggle('on',j===i))}
 tabs.forEach((t,i)=>t.onclick=()=>{setTab(i);const w=i===2?'#90-day-program':'#credit-restoration';if(location.hash!==w)location.hash=w});
-document.querySelectorAll('[data-pk]').forEach(e=>{const p=PACKAGES[e.dataset.pk];e.innerHTML=(p.reg!==p.price?'<s class="was">$'+p.reg+'</s> ':'')+'$'+p.price});document.querySelectorAll('[data-sp]').forEach(e=>{const r=+e.dataset.sp;e.innerHTML=(SALE_OFF?'<s class="was">$'+r.toLocaleString()+'</s> ':'')+'$'+(r-SALE_OFF).toLocaleString()});if(SALE){const b=document.createElement('div');b.className='salebar';b.innerHTML=SALE==='flash'?'<b>Flash Sale:</b> $200 off every plan when you pay in full. Limited time only.':'<b>Special Promo:</b> $100 off every plan when you pay in full.';document.body.prepend(b);document.body.style.paddingBottom='46px'}
+document.querySelectorAll('[data-pk]').forEach(e=>{const p=PACKAGES[e.dataset.pk];e.innerHTML=(p.reg!==p.price?'<s class="was">$'+p.reg+'</s> ':'')+'$'+p.price});document.querySelectorAll('[data-sp]').forEach(e=>{const r=+e.dataset.sp;e.innerHTML=(SALE_OFF?'<s class="was">$'+r.toLocaleString()+'</s> ':'')+'$'+(r-SALE_OFF).toLocaleString()});if(SALE_INFO){const b=document.createElement('div');b.className='salebar';document.body.prepend(b);document.body.style.paddingBottom='46px';const lab=(SALE_INFO.t==='flash'?'<b>Flash Sale:</b> $200 off every plan when you pay in full.':'<b>Special Promo:</b> $100 off every plan when you pay in full.')+(SALE_INFO.spots?' <b class="sp">Only '+SALE_INFO.spots+' spot'+(SALE_INFO.spots>1?'s':'')+' at this price.</b>':'');const tick=()=>{if(!SALE){b.innerHTML='This sale has ended. Regular pricing applies.';return}const ms=SALE_INFO.end-Date.now();if(ms<=0){location.reload();return}const dd=Math.floor(ms/864e5),hh=Math.floor(ms/36e5)%24,mm=Math.floor(ms/6e4)%60,ss=Math.floor(ms/1e3)%60;b.innerHTML=lab+'<span class="cd">Ends in '+(dd?dd+'d ':'')+String(hh).padStart(2,'0')+'h '+String(mm).padStart(2,'0')+'m '+String(ss).padStart(2,'0')+'s</span>'};tick();if(SALE)setInterval(tick,1000)}
 const hoV=document.getElementById('homeView'),faqV=document.getElementById('faqView'),ptV=document.getElementById('partnersView'),ctV=document.getElementById('contactView');
 
 const stV=document.getElementById('startView');
