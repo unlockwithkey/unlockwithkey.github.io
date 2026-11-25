@@ -449,7 +449,11 @@ body.inner #ticker{display:none}
 <div class="step-p" id="gsp4"><form class="f" id="gsf4">
 <h2 style="font-size:1.6rem;color:var(--plum-t)">Review and authorize</h2>
 <div class="sum" id="gsSum2"></div>
-<div class="paybox"><b style="color:var(--text)">Payment</b><br>After you submit, we will email you a secure payment link. We never collect or store your card number on this website.</div>
+<div class="paybox" id="payInfo"><b style="color:var(--text)">Payment</b><br>After you submit, we will email you a secure payment link. We never collect or store your card number on this website.</div>
+<div class="paybox" id="cardBox" data-card hidden><b style="color:var(--text)">Pay securely now</b><br><span class="small">Your card is encrypted by Authorize.net directly in your browser. We never see or store your card number.</span>
+<label for="ccNum">Card number</label><input id="ccNum" inputmode="numeric" autocomplete="cc-number" maxlength="23" placeholder="1234 5678 9012 3456">
+<div class="row"><div><label for="ccExp">Expiration (MM/YY)</label><input id="ccExp" inputmode="numeric" autocomplete="cc-exp" maxlength="7" placeholder="MM/YY"></div><div><label for="ccCvv">Security code</label><input id="ccCvv" inputmode="numeric" autocomplete="cc-csc" maxlength="4" placeholder="CVV"></div></div>
+<p class="small" id="ccErr" style="color:#b3261e;margin-top:10px" hidden></p></div>
 <label>Type your full legal name as your electronic signature</label><input name="sig" required>
 <label class="ck"><input type="checkbox" required> I have read and agree to the <a href="#service-agreement" target="_blank">Service Agreement</a>, <a href="#cancellation" target="_blank">Cancellation Policy</a>, <a href="#terms" target="_blank">Terms</a>, and <a href="#privacy" target="_blank">Privacy Policy</a>.</label>
 <label class="ck"><input type="checkbox" required> <span id="authTxt"></span></label>
@@ -459,7 +463,7 @@ body.inner #ticker{display:none}
 <div class="step-p" id="gsp5" style="text-align:center">
 <p class="eyebrow">You&rsquo;re all set</p><h2 style="font-size:2.4rem;color:var(--plum-t)">Welcome, <span id="cfName"></span>.</h2>
 <p class="lead" style="margin:14px auto 0">Here is what happens next.</p>
-<ul class="tl" style="text-align:left"><li><b>Welcome email and payment link</b>You will receive onboarding instructions, your credit monitoring enrollment link, and a secure payment link.</li><li><b>Enroll in credit monitoring</b>Complete enrollment so we can see all three of your reports.</li><li><b>Refund policy</b>Once work has started on your profile, there are no refunds.</li></ul>
+<ul class="tl" style="text-align:left"><li><b id="cfWel">Welcome email and payment link</b><span id="cfWelT">You will receive onboarding instructions, your credit monitoring enrollment link, and a secure payment link.</span></li><li><b>Enroll in credit monitoring</b>Complete enrollment so we can see all three of your reports.</li><li><b>Refund policy</b>Once work has started on your profile, there are no refunds.</li></ul>
 <p class="small" id="cfNote"></p>
 <p style="margin-top:26px"><a class="btn fill" href="#top">Back to Home</a></p></div>
 </div></div></section>
@@ -513,6 +517,9 @@ const hoV=document.getElementById('homeView'),faqV=document.getElementById('faqV
 const stV=document.getElementById('startView'),pdV=document.getElementById('paidView');
 const GP={individual:{basic:{once:PACKAGES[0].price,start:125,mo:99},express:{once:PACKAGES[1].price}},couple:{basic:{once:500,start:250,mo:150},express:{once:897}}};
 const BF={once:99};
+const ACCEPT={login:'8dR4x4NP',key:'7g7bUT8ySL7heMTH84JUxy6GMeSeUaqaMjL43w4f6PNkpfmG576xGE2942PuBDpQ',env:'live'}; /* paste your Authorize.net API Login ID and Public Client Key (both safe to be public) to show card boxes on the page */
+function cardOn(){return !!(ACCEPT.login&&ACCEPT.key&&typeof PAY_URL!=='undefined'&&PAY_URL)}
+if(ACCEPT.login&&ACCEPT.key){const sc=document.createElement('script');sc.src=ACCEPT.env==='sandbox'?'https://jstest.authorize.net/v1/Accept.js':'https://js.authorize.net/v1/Accept.js';sc.charset='utf-8';document.head.appendChild(sc)}
 const PAY_URL='https://uwk-pay.moorewealthfirm.workers.dev/'; /* Cloudflare Worker that creates the Authorize.net payment page */
 const S={who:'individual',plan:'basic',pay:'once',bf:false};let gstep=1;
 const $=id=>document.getElementById(id),money=n=>'$'+(Number.isInteger(n)?n:n.toFixed(2));
@@ -538,7 +545,7 @@ $('gsSum').innerHTML=sumHTML();$('partnerF').hidden=S.who!=='couple';$('coMon').
 $('partnerF').querySelectorAll('input').forEach(i=>i.required=S.who==='couple'&&['p1','p2','pe'].includes(i.name))}
 function goStep(n){gstep=n;document.querySelectorAll('.step-p').forEach((e,i)=>e.classList.toggle('on',i+1===n));
 document.querySelectorAll('#prog li').forEach((l,i)=>{l.className=i+1===n?'on':i+1<n?'done':''});$('prog').hidden=n===5;
-if(n===4){$('gsSum2').innerHTML=sumHTML();
+if(n===4){$('gsSum2').innerHTML=sumHTML();const co=cardOn();$('cardBox').hidden=!co;$('payInfo').hidden=co;$('ccErr').hidden=true;document.querySelector('#gsf4 button[type=submit]').textContent=co?'Pay '+money(pr().once!==undefined&&S.pay!=='plan'?pr().once:pr().start)+' & Complete Sign-Up':'Complete Sign-Up';
 $('authTxt').textContent='I understand that payment is due at sign-up and that there are no refunds once work has started on my profile.'}
 scrollTo(0,0)}
 document.querySelectorAll('#gsf1 input').forEach(i=>i.onchange=()=>{S[i.name]=i.value;renderGs()});
@@ -547,14 +554,30 @@ if(n!==4){goStep(n+1);return}
 const btn=f.querySelector('button[type=submit]'),t=btn.textContent;btn.disabled=true;btn.textContent='Submitting...';
 const q=pr();
 const fields=Object.assign({'Plan':S.bf?'BLACK FRIDAY $99 Starter Round (review + 1 round of disputes)':(S.plan==='basic'?'Basic':'Express')+' Repair','Offer':S.bf?'Black Friday - first 10 only':'Standard','Signing up as':S.who,'Payment option':S.pay==='plan'?'Payment plan: '+money(q.start)+' to start, then '+money(q.mo)+'/month':'One-time fee: '+money(q.once),'Amount due at sign-up':(S.pay==='plan'?money(q.start):money(q.once)),'Invoice number':'UWK'+Date.now().toString().slice(-8),'Authorized and signed':new Date().toString()},collect([$('gsf2'),$('gsf3'),$('gsf4')]));
-if(FORMS.endpoint){const g=n=>{const el=document.querySelector('#gsf2 [name='+n+']');return el?el.value:''};const zp=Object.assign({form_type:'credit_repair_signup',first_name:g('fn'),last_name:g('ln'),email:g('em'),phone:g('ph'),address:g('ad'),city:g('ci'),state:g('st'),zip:g('zp')},fields);zapSend(ZAP.credit,zp)}
+const g0=n=>{const el=document.querySelector('#gsf2 [name='+n+']');return el?el.value:''};
+window.__zapNow=()=>{if(FORMS.endpoint){const g=n=>{const el=document.querySelector('#gsf2 [name='+n+']');return el?el.value:''};const zp=Object.assign({form_type:'credit_repair_signup',first_name:g('fn'),last_name:g('ln'),email:g('em'),phone:g('ph'),address:g('ad'),city:g('ci'),state:g('st'),zip:g('zp')},fields);zapSend(ZAP.credit,zp)}};
+if(!cardOn())window.__zapNow();
+let paid=false;
+if(cardOn()){const ce=m=>{$('ccErr').textContent=m;$('ccErr').hidden=false;btn.disabled=false;btn.textContent=t;$('ccErr').scrollIntoView({block:'center'})};
+$('ccErr').hidden=true;btn.textContent='Processing payment...';
+const num=$('ccNum').value.replace(/\D/g,''),ex=$('ccExp').value.replace(/\D/g,''),cv=$('ccCvv').value.replace(/\D/g,'');
+if(num.length<13||ex.length<4||cv.length<3){ce('Please check your card number, expiration (MM/YY), and security code.');return}
+if(!window.Accept){ce('The secure payment form did not load. Please refresh the page and try again.');return}
+const od=await new Promise(res=>Accept.dispatchData({authData:{clientKey:ACCEPT.key,apiLoginID:ACCEPT.login},cardData:{cardNumber:num,month:ex.slice(0,2),year:ex.slice(2,4),cardCode:cv,zip:g0('zp')}},x=>res(x)));
+if(!od||od.messages.resultCode!=='Ok'){ce('We could not read that card. Please check the details and try again.');return}
+let cj;try{const cr=await fetch(PAY_URL+'charge',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bf:S.bf,who:S.who,plan:S.plan,pay:S.pay,invoice:fields['Invoice number'],dd:od.opaqueData.dataDescriptor,dv:od.opaqueData.dataValue,first:g0('fn'),last:g0('ln'),email:g0('em'),address:g0('ad'),city:g0('ci'),state:g0('st'),zip:g0('zp')})});cj=await cr.json()}catch(e){cj=null}
+$('ccNum').value='';$('ccCvv').value='';$('ccExp').value='';
+if(!cj||!cj.ok){ce((cj&&cj.error)||'Your payment could not be completed. Please check your card or try another card. You have not been charged.');return}
+paid=true;fields['Payment status']='PAID';fields['Transaction ID']=cj.transId}
+if(cardOn())window.__zapNow();
 const r=await sendForm('New client sign-up',fields,'');btn.disabled=false;btn.textContent=t;
-if(r===false){alert('Sorry, something went wrong and your sign-up was not sent. Please email moorewealthfirm@gmail.com.'+(window.__ferr?' ['+window.__ferr+']':''));return}
-if(PAY_URL&&r!=='preview'){btn.disabled=true;btn.textContent='Taking you to secure payment...';try{const g2=n=>{const el=document.querySelector('#gsf2 [name='+n+']');return el?el.value:''};
+if(r===false&&!paid){alert('Sorry, something went wrong and your sign-up was not sent. Please email moorewealthfirm@gmail.com.'+(window.__ferr?' ['+window.__ferr+']':''));return}
+if(PAY_URL&&!cardOn()&&r!=='preview'){btn.disabled=true;btn.textContent='Taking you to secure payment...';try{const g2=n=>{const el=document.querySelector('#gsf2 [name='+n+']');return el?el.value:''};
 const pr2=await fetch(PAY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bf:S.bf,who:S.who,plan:S.plan,pay:S.pay,invoice:fields['Invoice number'],first:g2('fn'),last:g2('ln'),email:g2('em'),address:g2('ad'),city:g2('ci'),state:g2('st'),zip:g2('zp')})});const pj=await pr2.json();
 if(pj.token){const fm=document.createElement('form');fm.method='POST';fm.action=pj.action;const ti=document.createElement('input');ti.type='hidden';ti.name='token';ti.value=pj.token;fm.appendChild(ti);document.body.appendChild(fm);fm.submit();return}}catch(e){}btn.disabled=false;btn.textContent=t}
 $('cfName').textContent=document.querySelector('#gsf2 [name=fn]').value;
 $('cfNote').textContent=r==='preview'?'Preview only: no email was sent.':'We received your information and will email you your next steps shortly.';
+if(paid){const e1=document.querySelector('#gsp5 .eyebrow');if(e1)e1.textContent='Payment received';$('cfWel').textContent='Welcome email';$('cfWelT').textContent='Your payment went through. You will receive onboarding instructions and your credit monitoring enrollment link by email.'}
 goStep(5)});
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>goStep(gstep-1));
 document.addEventListener('click',e=>{const a=e.target.closest('a[href="#get-started"]');if(!a)return;
@@ -574,7 +597,7 @@ function normF(f){const o={};for(const k in f){const v=f[k];if(/e-?mail/i.test(k
 function zapSend(u,o){if(!u)return;try{fetch(u,{method:'POST',mode:'no-cors',body:new URLSearchParams(o)}).catch(()=>{})}catch(e){}}
 const FORMS={endpoint:'https://api.web3forms.com/submit',key:'7b2c73e1-8172-451e-8ce6-b700255b67d1'}; /* Set endpoint (and key, if your form service gives one) to start receiving submissions by email. Leave blank for preview mode. */
 function lbl(el){let n=el.previousElementSibling;while(n&&n.tagName!=='LABEL')n=n.previousElementSibling;return (n?n.textContent:el.placeholder||el.name||'Field').trim()}
-function collect(forms){const o={};forms.forEach(f=>f.querySelectorAll('input,select,textarea').forEach(el=>{if(el.type==='checkbox'||el.type==='radio'&&!el.checked||el.type==='hidden'||el.name==='botcheck')return;if(el.value==='')return;let k=lbl(el);if(el.type==='radio')k=el.name;if(o[k]!==undefined)k=k+' ('+Object.keys(o).length+')';o[k]=el.value}));return o}
+function collect(forms){const o={};forms.forEach(f=>f.querySelectorAll('input,select,textarea').forEach(el=>{if(el.closest('[data-card]'))return;if(el.type==='checkbox'||el.type==='radio'&&!el.checked||el.type==='hidden'||el.name==='botcheck')return;if(el.value==='')return;let k=lbl(el);if(el.type==='radio')k=el.name;if(o[k]!==undefined)k=k+' ('+Object.keys(o).length+')';o[k]=el.value}));return o}
 async function sendForm(subject,fields,hp){if(hp)return true;if(!FORMS.endpoint)return 'preview';
 if(subject!=='New client sign-up')zapSend(ZAP.lofty,Object.assign({form_type:subject,lead_type:({'Buyer questionnaire':'Buyer','Renter questionnaire':'Renter'})[subject]||'Other'},normF(fields),fields));
 const body=Object.assign({subject:'Website: '+subject,from_name:'Kedra Nique Website'},fields);if(FORMS.key)body.access_key=FORMS.key;
